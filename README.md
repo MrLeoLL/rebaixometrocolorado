@@ -1,2 +1,587 @@
-# rebaixometrocolorado
-Simulador Estatístico da Rodada Final para ver as chances de queda do internacional.
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador: O Destino do Inter</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-red: #E30613; /* Inter Red */
+            --dark-bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --success-green: #10b981;
+            --danger-red: #ef4444;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-weight: 800;
+            color: var(--primary-red);
+            font-size: 2.5rem;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            border-bottom: 2px solid var(--primary-red);
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+
+        /* Table Styles */
+        .mini-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .mini-table th {
+            text-align: left;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .mini-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .row-inter {
+            background-color: #fef2f2;
+            font-weight: bold;
+            color: var(--primary-red);
+        }
+
+        /* Match List Grid */
+        .match-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .match-item {
+            background-color: #f9fafb;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-item strong { color: var(--text-main); }
+
+        /* Input Section */
+        .control-panel {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            transition: border-color 0.2s;
+            box-sizing: border-box; 
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+        }
+
+        .btn-simulate {
+            background-color: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-simulate:hover {
+            background-color: #c40510;
+        }
+
+        .btn-simulate:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-simulate:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+        }
+
+        .progress-track {
+            background-color: #e5e7eb;
+            border-radius: 999px;
+            height: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary-red);
+            transition: width 0.2s ease-out;
+        }
+
+        .status-text {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* Results Area */
+        .results-container {
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            text-align: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-box {
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .stat-box.danger {
+            background-color: #fef2f2;
+            border: 1px solid #fee2e2;
+        }
+
+        .stat-box.safe {
+            background-color: #ecfdf5;
+            border: 1px solid #d1fae5;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            display: block;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .danger .stat-value { color: var(--danger-red); }
+        .danger .stat-label { color: #b91c1c; }
+        
+        .safe .stat-value { color: var(--success-green); }
+        .safe .stat-label { color: #047857; }
+
+        .visual-bar-container {
+            margin-top: 15px;
+            height: 30px;
+            width: 100%;
+            display: flex;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .bar-segment-red { background-color: var(--danger-red); }
+        .bar-segment-green { background-color: var(--success-green); }
+
+        .note {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <header>
+            <h1>O Milagre do Inter</h1>
+            <p>Simulador Estatístico da Rodada Final</p>
+        </header>
+
+        <!-- Context Card -->
+        <div class="card">
+            <div class="card-title">Cenário Atual (Rodada 37)</div>
+            <p style="margin-top:0; color:var(--text-muted);">
+                O Internacional (18º) precisa ultrapassar <strong>2 adversários</strong> para sobreviver.
+                Critérios de desempate: Pontos > Vitórias > Saldo de Gols.
+            </p>
+            
+            <table class="mini-table">
+                <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Time</th>
+                        <th>Pts</th>
+                        <th>Vit</th>
+                        <th>Saldo</th>
+                        <th>Adversário Final</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>14</td>
+                        <td>Santos</td>
+                        <td>44</td>
+                        <td>11</td>
+                        <td>-8</td>
+                        <td>vs Cruzeiro</td>
+                    </tr>
+                    <tr>
+                        <td>15</td>
+                        <td>Ceará</td>
+                        <td>43</td>
+                        <td>11</td>
+                        <td>-4</td>
+                        <td>vs Palmeiras</td>
+                    </tr>
+                    <tr>
+                        <td>16</td>
+                        <td>Fortaleza</td>
+                        <td>43</td>
+                        <td>11</td>
+                        <td>-13</td>
+                        <td>vs Botafogo (fora)</td>
+                    </tr>
+                    <tr>
+                        <td>17</td>
+                        <td>Vitória</td>
+                        <td>42</td>
+                        <td>10</td>
+                        <td>-18</td>
+                        <td>vs São Paulo</td>
+                    </tr>
+                    <tr class="row-inter">
+                        <td>18</td>
+                        <td>Internacional</td>
+                        <td>41</td>
+                        <td>10</td>
+                        <td>-15</td>
+                        <td>vs Bragantino</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Simulation Controls -->
+        <div class="card">
+            <div class="card-title">Configurar Simulação</div>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
+                Os jogos serão simulados com placares aleatórios entre 0 e 5 gols para cada time.
+            </p>
+            
+            <div class="match-grid" style="margin-bottom: 20px;">
+                <div class="match-item"><span>⚽ Inter</span> <span>vs Bragantino</span></div>
+                <div class="match-item"><span>⚽ Vitória</span> <span>vs São Paulo</span></div>
+                <div class="match-item"><span>⚽ Botafogo</span> <span>vs Fortaleza</span></div>
+                <div class="match-item"><span>⚽ Ceará</span> <span>vs Palmeiras</span></div>
+                <div class="match-item"><span>⚽ Santos</span> <span>vs Cruzeiro</span></div>
+            </div>
+
+            <div class="control-panel">
+                <div class="input-wrapper">
+                    <input type="number" id="simCount" value="1000000" min="1000" step="1000" placeholder="Qtd. Simulações (ex: 1.000.000)">
+                </div>
+                <button class="btn-simulate" id="btnSimulate" onclick="runEngine()">
+                    Iniciar Simulação
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-wrapper" id="progressArea">
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressBar"></div>
+                </div>
+                <div class="status-text" id="statusText">Iniciando motor de simulação...</div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="card results-container" id="resultsArea">
+            <div class="card-title">Resultado da Análise</div>
+            
+            <div class="result-stats">
+                <!-- Relegated -->
+                <div class="stat-box danger">
+                    <span class="stat-label">Caiu (Z4)</span>
+                    <span class="stat-value" id="z4Percent">--%</span>
+                    <small id="z4Total" style="color: #991b1b">0 cenários</small>
+                </div>
+
+                <!-- Safe -->
+                <div class="stat-box safe">
+                    <span class="stat-label">Escapou (16º+)</span>
+                    <span class="stat-value" id="safePercent">--%</span>
+                    <small id="safeTotal" style="color: #065f46">0 cenários</small>
+                </div>
+            </div>
+
+            <p style="text-align: center; margin-bottom: 5px; font-weight: 600;">Visualização da Probabilidade</p>
+            <div class="visual-bar-container">
+                <div id="visualBarRed" class="bar-segment-red" style="width: 50%"></div>
+                <div id="visualBarGreen" class="bar-segment-green" style="width: 50%"></div>
+            </div>
+
+            <p class="note">Baseado em <span id="totalSimsDisplay">0</span> simulações matemáticas independentes.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // Simulation Engine Variables
+        let isRunning = false;
+        const chunkSize = 100000; // Process 100k per frame for UI responsiveness
+        let currentSim = 0;
+        let totalSims = 0;
+        let countRelegated = 0;
+        let countSafe = 0;
+
+        function runEngine() {
+            if (isRunning) return;
+
+            // Get Input
+            const inputVal = document.getElementById('simCount').value;
+            totalSims = parseInt(inputVal);
+
+            if (!totalSims || totalSims <= 0) {
+                alert("Por favor, insira um número válido de simulações.");
+                return;
+            }
+
+            // UI Reset
+            isRunning = true;
+            currentSim = 0;
+            countRelegated = 0;
+            countSafe = 0;
+            
+            document.getElementById('btnSimulate').disabled = true;
+            document.getElementById('btnSimulate').textContent = "Processando...";
+            document.getElementById('resultsArea').style.display = 'none';
+            document.getElementById('progressArea').style.display = 'block';
+            document.getElementById('progressBar').style.width = '0%';
+
+            // Start Processing
+            requestAnimationFrame(processBatch);
+        }
+
+        function processBatch() {
+            const end = Math.min(currentSim + chunkSize, totalSims);
+
+            // Optimized Loop: Using primitive variables instead of objects for speed
+            // Inter(41), Vitoria(42), Fortaleza(43), Ceara(43), Santos(44)
+            
+            for (let i = currentSim; i < end; i++) {
+                
+                // 1. Initialize Stats for this single run
+                let ip = 41, iw = 10, igd = -15; // Inter
+                let vp = 42, vw = 10, vgd = -18; // Vitoria
+                let fp = 43, fw = 11, fgd = -13; // Fortaleza
+                let cp = 43, cw = 11, cgd = -4;  // Ceara
+                let sp = 44, sw = 11, sgd = -8;  // Santos
+
+                // Helper to simulate match (0-5 goals)
+                // We inline this for performance in a 50M loop
+                
+                // MATCH 1: Inter vs Bragantino
+                let g1 = (Math.random() * 6) | 0; 
+                let g2 = (Math.random() * 6) | 0;
+                if (g1 > g2) { ip += 3; iw++; }
+                else if (g1 === g2) { ip += 1; }
+                igd += (g1 - g2);
+
+                // MATCH 2: Vitoria vs SPFC
+                g1 = (Math.random() * 6) | 0; 
+                g2 = (Math.random() * 6) | 0;
+                if (g1 > g2) { vp += 3; vw++; }
+                else if (g1 === g2) { vp += 1; }
+                vgd += (g1 - g2);
+
+                // MATCH 3: Botafogo (Home) vs Fortaleza (Away)
+                g1 = (Math.random() * 6) | 0; // Botafogo
+                g2 = (Math.random() * 6) | 0; // Fortaleza
+                if (g2 > g1) { fp += 3; fw++; } // Fortaleza Win
+                else if (g2 === g1) { fp += 1; }
+                fgd += (g2 - g1);
+
+                // MATCH 4: Ceara vs Palmeiras
+                g1 = (Math.random() * 6) | 0; 
+                g2 = (Math.random() * 6) | 0;
+                if (g1 > g2) { cp += 3; cw++; }
+                else if (g1 === g2) { cp += 1; }
+                cgd += (g1 - g2);
+
+                // MATCH 5: Santos vs Cruzeiro
+                g1 = (Math.random() * 6) | 0; 
+                g2 = (Math.random() * 6) | 0;
+                if (g1 > g2) { sp += 3; sw++; }
+                else if (g1 === g2) { sp += 1; }
+                sgd += (g1 - g2);
+
+                // 2. Logic: Inter starts 18th. Needs to pass 2 teams to get to 16th.
+                let teamsPassed = 0;
+
+                // Compare vs Vitoria
+                if (ip > vp) teamsPassed++;
+                else if (ip === vp) {
+                    if (iw > vw) teamsPassed++;
+                    else if (iw === vw && igd > vgd) teamsPassed++;
+                }
+
+                // Compare vs Fortaleza
+                if (ip > fp) teamsPassed++;
+                else if (ip === fp) {
+                    if (iw > fw) teamsPassed++;
+                    else if (iw === fw && igd > fgd) teamsPassed++;
+                }
+
+                // Compare vs Ceara
+                if (ip > cp) teamsPassed++;
+                else if (ip === cp) {
+                    if (iw > cw) teamsPassed++;
+                    else if (iw === cw && igd > cgd) teamsPassed++;
+                }
+
+                // Compare vs Santos
+                if (ip > sp) teamsPassed++;
+                else if (ip === sp) {
+                    if (iw > sw) teamsPassed++;
+                    else if (iw === sw && igd > sgd) teamsPassed++;
+                }
+
+                // 3. Tally Result
+                if (teamsPassed >= 2) {
+                    countSafe++;
+                } else {
+                    countRelegated++;
+                }
+            }
+
+            // Update Progress
+            currentSim = end;
+            const progressPct = (currentSim / totalSims) * 100;
+            document.getElementById('progressBar').style.width = `${progressPct}%`;
+            document.getElementById('statusText').textContent = `Simulando cenário ${currentSim.toLocaleString()} de ${totalSims.toLocaleString()}...`;
+
+            if (currentSim < totalSims) {
+                // Keep going
+                setTimeout(processBatch, 0);
+            } else {
+                // Finished
+                finishEngine();
+            }
+        }
+
+        function finishEngine() {
+            isRunning = false;
+            document.getElementById('btnSimulate').disabled = false;
+            document.getElementById('btnSimulate').textContent = "Simular Novamente";
+            document.getElementById('progressArea').style.display = 'none';
+
+            // Calculate Final Stats
+            const pctSafe = (countSafe / totalSims) * 100;
+            const pctRelegated = (countRelegated / totalSims) * 100;
+
+            // Update DOM
+            document.getElementById('resultsArea').style.display = 'block';
+            
+            document.getElementById('z4Percent').textContent = pctRelegated.toFixed(2) + "%";
+            document.getElementById('z4Total').textContent = `${countRelegated.toLocaleString()} cenários`;
+            
+            document.getElementById('safePercent').textContent = pctSafe.toFixed(2) + "%";
+            document.getElementById('safeTotal').textContent = `${countSafe.toLocaleString()} cenários`;
+
+            document.getElementById('totalSimsDisplay').textContent = totalSims.toLocaleString();
+
+            // Visual Bar Widths
+            document.getElementById('visualBarRed').style.width = `${pctRelegated}%`;
+            document.getElementById('visualBarGreen').style.width = `${pctSafe}%`;
+        }
+    </script>
+</body>
+</html>
